@@ -90,7 +90,7 @@ def main():
             # if the move is not allowed then send a flag to the arduino
             # to notify the user
             if move not in pos.genMoves():
-                crtlvar = '2'
+                ctrlvar = '2'
                 arduino.write((ctrlvar+'0000').encode())
                 print("Invalid Move")
             else:
