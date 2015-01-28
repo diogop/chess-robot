@@ -93,7 +93,6 @@ def main():
                 crtlvar = '2'
                 arduino.write((ctrlvar+'0000').encode())
                 print("Invalid Move")
-                positionListPrec = copy.copy(positionList)
             else:
                 
                 print("You moved  a: ",pos.board[move[0]])
