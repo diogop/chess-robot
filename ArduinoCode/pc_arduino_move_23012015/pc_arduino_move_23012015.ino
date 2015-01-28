@@ -2,7 +2,8 @@
 // has made his move, the pc will then do what he has to do
 #define MOVE_MADE '1'
 
-#define LED 13        // led pin used for debug
+#define LED 13        // led pin used for debug 
+                      // and to tell user wrong move
 
 // definition of macros for pins associated wih motor 1
 // motor 1 controlls the movement in y direction
@@ -18,6 +19,9 @@
 // macro for the magnet pin
 #define MAGNET 10
 
+// macro for button pin
+#define MOVE_BUTTON 2
+
 // End definition macros=========================================================================================
 
 // Definition of variables========================================================================================
@@ -28,7 +32,7 @@ const unsigned int steps_deviation = (int) (size_square/2)/prec_m; // steps need
 int pos_coord[2] = {1, 1};          // current position of the motor, motor should be placed at {1,1} before starting the arduino
 int move_begin[2] = {1, 1};         // coordinates of the pice that has to be moved
 int move_end[2] = {1, 1};           // coordinated of the position tho where the piece has been moved
-int jail_coord[2] = {9, 5};   // Jail : fallen pieces get moved to this position
+int jail_coord[2] = {4, 9};   // Jail : fallen pieces get moved to this position
 
 /* control variable, this will determine if we have an invalid move, 
  a piece will go to jail or the move consits in a simple motion of the piece
@@ -60,13 +64,32 @@ void setup(){
   
   // Config for Led
   pinMode(LED,OUTPUT);
+  // Config for Magnet
+  pinMode(MAGNET,OUTPUT);
+  // Config for buttin
+  pinMode(MOVE_BUTTON,INPUT);
   
   // Disable the motors just to be sure
   disableMotors();
+  digitalWrite(MAGNET,LOW);
+  //Serial.println("SETUP DONE");
+  delay(100);
 }
 
 void loop() {
+  digitalWrite(MAGNET,LOW);
   delay(100);
+  
+  if (!moveRecieved && digitalRead(MOVE_BUTTON) == LOW) {
+    // The user pushed the button and no other move is being done
+    // Signal Computer that move was made and let the ai do its job
+    Serial.write(MOVE_MADE);
+    // delay to avoid double hits
+    delay(500);
+    // turn of Led since user made his move in case it was on
+    digitalWrite(LED,LOW);
+  }
+  
   if (Serial.available() > 0) {
     data = Serial.readString(); // read the entire string from the stack and put it inside a variable
     delay(100);                 // wait little hobbit not so fast.... (if no delay strange things happen)
@@ -81,8 +104,10 @@ void loop() {
     switch(ctrl) {
       case '0':
         movePosition(move_begin,pos_coord); // move from the current position to the begin move position
+        //Serial.println("Moved to begin of move");
         digitalWrite(MAGNET,HIGH);          // turn on magnet
         movePositionPiece(move_end,move_begin);  // make the move with the piece
+        //Serial.println("Moving piece");
         digitalWrite(MAGNET,LOW);           // turn off the magnet
         delay(1000);                        // wait 1sec for demagnetization
         updateCurrentPosition();
@@ -103,6 +128,7 @@ void loop() {
       case '2':
         // turn on LED
         digitalWrite(LED,HIGH);
+        moveRecieved = false; // move was processed
         break;
     };
     
@@ -139,12 +165,12 @@ void movePosition(int destination[2], int source[2]) {
   double distanceY=0;
   int dirX=0;
   int dirY=0;
-  distanceX = (destination[1]-source[1])*size_square;
-  distanceY = (destination[2]-source[2])*size_square;
+  distanceX = (destination[0]-source[0])*size_square;
+  distanceY = (destination[1]-source[1])*size_square;
   //X Movement
   if (distanceX > 0){
     dirX = 1;
-    steps_X=distanceX/prec_m;
+    steps_X= distanceX/prec_m;
   } 
   else {
     dirX = 0;
@@ -161,20 +187,22 @@ void movePosition(int destination[2], int source[2]) {
     distanceY=-distanceY;
     steps_Y=distanceY/prec_m;
   }
+  //Serial.println(steps_Y);
+  //Serial.println(steps_X);
   moveMotors(dirX, steps_X, 2);
   moveMotors(dirY, steps_Y, 1);  
 }
 
 void movePositionPiece(int destination[2], int source[2]) {
-  //moveMotors(1,  steps_deviation, 2);
-  //moveMotors(1,  steps_deviation, 1);
+  moveMotors(1,  steps_deviation, 2);
+  moveMotors(1,  steps_deviation, 1);
   
   // move the piece
   movePosition(destination, source);
   
   // move back to center of square
-  //moveMotors(2,  steps_deviationX, 2);
-  //moveMotors(2,  steps_deviationY, 1);
+  moveMotors(2,  steps_deviation, 2);
+  moveMotors(2,  steps_deviation, 1);
 }
 
 void moveMotors(int dir, int steps, int motor){
@@ -189,9 +217,9 @@ void moveMotors(int dir, int steps, int motor){
     }
     while (a < steps){
       digitalWrite(STP1,HIGH);   
-      delay(5);   
+      delay(3);   
       digitalWrite(STP1,LOW);
-      delay(5);
+      delay(3);
       a++;
     }
   }
@@ -205,9 +233,9 @@ void moveMotors(int dir, int steps, int motor){
     }
     while (a< steps){
       digitalWrite(STP2,HIGH);   
-      delay(5);   
+      delay(3);   
       digitalWrite(STP2,LOW);
-      delay(5);
+      delay(3);
       a++;
     }
   }
@@ -215,6 +243,7 @@ void moveMotors(int dir, int steps, int motor){
 }
 
 void updateCurrentPosition() {
+  pos_coord[0] = move_end[0];
   pos_coord[1] = move_end[1];
-  pos_coord[2] = move_end[2];
 }
+

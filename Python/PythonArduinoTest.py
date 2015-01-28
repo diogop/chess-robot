@@ -5,7 +5,7 @@ import sunfish_with_undo as ai
 import copy
 import sys
 import playerMove
-import QRCodeRecognition.recognition as recognition
+import QRCodeRecognition.recognitionColor as recognition
 
 BAUDRATE = 9600
 
@@ -17,15 +17,23 @@ INVALID_MOVE = b'3'
 MOVE_DONE = b'4'
 DOING_MOVE = b'5'
 
-arduino = serial.Serial("/dev/tty.usbmodem1421",BAUDRATE,timeout=1)
+positionListPrec = []
+
+arduino = serial.Serial("/dev/tty.usbmodem1411",BAUDRATE,timeout=1)
 time.sleep(2)
 arduino.flushInput()
 
 # Python 2 compatability
 if sys.version_info[0] == 2:
     input = raw_input
-
-
+    
+def printMatrix(matrix):
+    s = [[str(e) for e in row] for row in matrix]
+    lens = [max(map(len, col)) for col in zip(*s)]
+    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    table = [fmt.format(*row) for row in s]
+    print ('\n'.join(table))
+    
 def convert(move):
     """ converts the move in chess notation to the move understandable
     by the arduino
@@ -36,7 +44,8 @@ def convert(move):
 
 def main():
     
-    positionListPrec = recognition.parse('table') #precedent positions in list format. Will take a picture and recognize the QR codes
+    positionListPrec = recognition.parse('test1') #precedent positions in list format. Will take a picture and recognize the QR codes
+    print (positionListPrec)
     
     if len(positionListPrec) != 8:
         print('error')
@@ -45,10 +54,12 @@ def main():
     pos = ai.Position(ai.initial,0,(True,True),(True,True),0,0)
     prevPos = copy.deepcopy(pos)
     
-    print('Make a move, then press Select')
+    print('Make a move, then press button')
     
     while True:
         data=arduino.readline()
+        #moveMade = input('move made ?')
+        #data = MOVE_MADE
         if (data == MOVE_MADE):
             # We add some spaces to the board before we print it.
             # That makes it more readable and pleasing.
@@ -56,8 +67,12 @@ def main():
             # we got the command that the player has done his move take picture
             # extract the data and send the move to the chess engine
             
-            positionList = recognition.parse('tablebis')
+            positionList = recognition.parse('test1')
+            printMatrix(positionListPrec)
+            print (' ')
+            printMatrix(positionList)
             crdn = playerMove.getMove(positionListPrec, positionList)
+            print (crdn)
             
             # for now we just ask the user to input the move by hand since the
             # webcam code is not done yet
@@ -78,6 +93,7 @@ def main():
                 crtlvar = '2'
                 arduino.write((ctrlvar+'0000').encode())
                 print("Invalid Move")
+                positionListPrec = copy.copy(positionList)
             else:
                 
                 print("You moved  a: ",pos.board[move[0]])
@@ -120,6 +136,11 @@ def main():
                 #send the move to the arduino
                 movement = ai.render(119-move[0]) + ai.render(119-move[1])
                 arduino.write((ctrlvar + makeArduinoConversion(movement)).encode())
+                
+                del positionListPrec[:]
+                printMatrix(positionListPrec)
+                positionListPrec = moveAI(makeArduinoConversion(movement), positionList)
+                printMatrix(positionListPrec)
         
         elif (data == MOVE_UNDO):
             #player used undo
@@ -132,6 +153,12 @@ def main():
             # for now we just print it
             print(lastMovedPiece,"is moving")
 
+def moveAI(move, liste):
+    ret = copy.copy(liste)
+    print (move)
+    ret[7-(int(move[1])-1)][(int(move[0])-1)] = 0
+    ret[7-(int(move[3])-1)][(int(move[2])-1)] = 1
+    return ret
 
 def makeArduinoConversion(movement):
 
