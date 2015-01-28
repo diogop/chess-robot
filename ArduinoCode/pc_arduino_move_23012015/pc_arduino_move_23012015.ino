@@ -80,6 +80,7 @@ void loop() {
   digitalWrite(MAGNET,LOW);
   delay(100);
   
+<<<<<<< HEAD:ArduinoCode/pc_arduino_move_23012015/pc_arduino_move_23012015.ino
   if (!moveRecieved && digitalRead(MOVE_BUTTON) == LOW) {
     // The user pushed the button and no other move is being done
     // Signal Computer that move was made and let the ai do its job
@@ -88,6 +89,12 @@ void loop() {
     delay(500);
     // turn of Led since user made his move in case it was on
     digitalWrite(LED,LOW);
+=======
+  if (!moveRecieved && digitalRead(MOVE_BUTTON) == HIGH) {
+    // The user pushed the button and no other move is being done
+    // Signal Computer that move was made and let the ai do its job
+    Serial.write(MOVE_MADE);
+>>>>>>> FETCH_HEAD:ArduinoCode/pc_arduino_move_17012015/pc_arduino_move_17012015.ino
   }
   
   if (Serial.available() > 0) {
@@ -104,10 +111,17 @@ void loop() {
     switch(ctrl) {
       case '0':
         movePosition(move_begin,pos_coord); // move from the current position to the begin move position
+<<<<<<< HEAD:ArduinoCode/pc_arduino_move_23012015/pc_arduino_move_23012015.ino
         //Serial.println("Moved to begin of move");
         digitalWrite(MAGNET,HIGH);          // turn on magnet
         movePositionPiece(move_end,move_begin);  // make the move with the piece
         //Serial.println("Moving piece");
+=======
+        Serial.println("Moved to begin of move");
+        digitalWrite(MAGNET,HIGH);          // turn on magnet
+        movePositionPiece(move_end,move_begin);  // make the move with the piece
+        Serial.println("Moving piece");
+>>>>>>> FETCH_HEAD:ArduinoCode/pc_arduino_move_17012015/pc_arduino_move_17012015.ino
         digitalWrite(MAGNET,LOW);           // turn off the magnet
         delay(1000);                        // wait 1sec for demagnetization
         updateCurrentPosition();
@@ -187,8 +201,13 @@ void movePosition(int destination[2], int source[2]) {
     distanceY=-distanceY;
     steps_Y=distanceY/prec_m;
   }
+<<<<<<< HEAD:ArduinoCode/pc_arduino_move_23012015/pc_arduino_move_23012015.ino
   //Serial.println(steps_Y);
   //Serial.println(steps_X);
+=======
+  Serial.println(steps_Y);
+  Serial.println(steps_X);
+>>>>>>> FETCH_HEAD:ArduinoCode/pc_arduino_move_17012015/pc_arduino_move_17012015.ino
   moveMotors(dirX, steps_X, 2);
   moveMotors(dirY, steps_Y, 1);  
 }
