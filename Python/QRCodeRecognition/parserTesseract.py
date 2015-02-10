@@ -10,6 +10,7 @@ def getFileDataListe(path):
     return lines
 
 def parse(path):
+    """Character recognition of the image"""
     os.system('tesseract '+path+' out 2>/dev/null')
     text = getFileDataListe('out.txt')
     text = filter(None, text)

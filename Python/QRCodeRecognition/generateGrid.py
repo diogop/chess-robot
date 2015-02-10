@@ -1,4 +1,5 @@
 from PIL import Image
+"""generates a complete image based on 64 copies of one image"""
 
 #opens an image:
 im = Image.open("qrcode.png")

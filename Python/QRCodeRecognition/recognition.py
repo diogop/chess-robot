@@ -4,6 +4,8 @@ import unbox
 import os
 import time
 
+"""Take a picture with the webcam, crop it around the board, cut the board in 64 pieces, analyse the squares (either QRcode recognition or OCR)"""
+
 def printMatrix(matrix):
 	s = [[str(e) for e in row] for row in matrix]
 	lens = [max(map(len, col)) for col in zip(*s)]

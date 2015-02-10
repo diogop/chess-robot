@@ -1,9 +1,10 @@
-import parserTesseract as parser
 import imageCutter
 import unbox
 import os
 import time
 import color
+
+"""Take a picture with the webcam, crop it around the board, cut the board in 64 pieces, analyse the squares to find where the pieces are"""
 
 def printMatrix(matrix):
 	s = [[str(e) for e in row] for row in matrix]

@@ -3,6 +3,8 @@ import cv2, cv
 import time
 import os
 
+"""Crop the image of one square around the piece of paper where the text is written"""
+
 def subimage(image, centre, theta, width, height):
     if height>width:
         add = 90
